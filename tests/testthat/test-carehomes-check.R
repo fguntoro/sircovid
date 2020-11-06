@@ -168,11 +168,11 @@ test_that("No one is hospitalised, no-one dies if p_sympt_ILI is 0", {
 })
 
 
-test_that("No one is hospitalised, no-one dies if psi_hosp_ILI is 0", {
+test_that("No one is hospitalised, no-one dies if relative_probability_hosp_ILI is 0", {
   ## waning_rate default is 0, setting to a non-zero value so that this test
   ## passes with waning immunity
   p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
-  p$psi_hosp_ILI[] <- 0
+  p$relative_probability_hosp_ILI[] <- 0
 
   mod <- carehomes$new(p, 0, 1)
   info <- mod$info()
@@ -210,9 +210,9 @@ test_that("No one is hospitalised, no-one recovers in edge case", {
   p$I0_asympt[] <- 0
   p$p_sympt_ILI[] <- 1
   p$p_hosp_ILI_step <- 1
-  p$psi_hosp_ILI[] <- 1
+  p$relative_probability_hosp_ILI[] <- 1
   p$p_death_comm_step <- 1
-  p$psi_death_comm[] <- 1
+  p$relative_probability_death_comm[] <- 1
   p$p_asympt[] <- 0
 
   mod <- carehomes$new(p, 0, 1)
@@ -254,9 +254,9 @@ test_that("No one is hospitalised, no-one recovers in edge case 2", {
   p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
   p$p_sympt_ILI[] <- 1
   p$p_hosp_ILI_step <- 1
-  p$psi_hosp_ILI[] <- 1
+  p$relative_probability_hosp_ILI[] <- 1
   p$p_death_comm_step <- 1
-  p$psi_death_comm[] <- 1
+  p$relative_probability_death_comm[] <- 1
   p$p_asympt[] <- 0
 
   mod <- carehomes$new(p, 0, 1)
@@ -292,11 +292,11 @@ test_that("No one is hospitalised, no-one recovers in edge case 2", {
 })
 
 
-test_that("No one dies in the community if psi_death_comm is 0", {
+test_that("No one dies in the community if relative_probability_death_comm is 0", {
   ## waning_rate default is 0, setting to a non-zero value so that this test
   ## passes with waning immunity
   p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
-  p$psi_death_comm[] <- 0
+  p$relative_probability_death_comm[] <- 0
 
   mod <- carehomes$new(p, 0, 1)
   info <- mod$info()
@@ -323,13 +323,13 @@ test_that("forcing hospital route results in correct path", {
     p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
     p$p_ICU_hosp_step <- ifelse(is.null(prob_ICU_hosp),
                                     p$p_ICU_hosp_step, 1)
-    p$psi_ICU_hosp[] <- prob_ICU_hosp %||% p$psi_ICU_hosp[]
+    p$relative_probability_ICU_hosp[] <- prob_ICU_hosp %||% p$relative_probability_ICU_hosp[]
     p$p_death_hosp_D_step <- ifelse(is.null(prob_death_hosp_D),
                                  p$p_death_hosp_D_step, 1)
-    p$psi_death_hosp_D[] <- prob_death_hosp_D %||% p$psi_death_hosp_D[]
+    p$relative_probability_death_hosp_D[] <- prob_death_hosp_D %||% p$relative_probability_death_hosp_D[]
     p$p_death_ICU_step <- ifelse(is.null(prob_death_ICU),
                                  p$p_death_ICU_step, 1)
-    p$psi_death_ICU[] <- prob_death_ICU %||% p$psi_death_ICU[]
+    p$relative_probability_death_ICU[] <- prob_death_ICU %||% p$relative_probability_death_ICU[]
 
     mod <- carehomes$new(p, 0, 1)
     info <- mod$info()
@@ -583,7 +583,7 @@ test_that("No one is unconfirmed, if p_admit_conf = 1", {
   ## passes with waning immunity
   p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
   p$p_admit_conf_step <- 1
-  p$psi_admit_conf[] <- 1
+  p$relative_probability_admit_conf[] <- 1
   p$gamma_triage <- Inf
   p$gamma_hosp_R <- Inf
   p$gamma_hosp_D <- Inf
@@ -626,7 +626,7 @@ test_that("No one is confirmed, if p_admit_conf = 0 and gamma_test = 0", {
   ## waning_rate default is 0, setting to a non-zero value so that this test
   ## passes with waning immunity
   p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
-  p$psi_admit_conf[] <- 0
+  p$relative_probability_admit_conf[] <- 0
   p$gamma_test <- 0
 
   mod <- carehomes$new(p, 0, 1)
@@ -658,7 +658,7 @@ test_that("Instant confirmation if p_admit_conf = 0 and gamma_test = Inf", {
   ## waning_rate default is 0, setting to a non-zero value so that this test
   ## passes with waning immunity
   p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
-  p$psi_admit_conf[] <- 0
+  p$relative_probability_admit_conf[] <- 0
   p$gamma_test <- Inf
   p$gamma_triage <- Inf
   p$gamma_hosp_R <- Inf

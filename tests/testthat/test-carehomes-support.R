@@ -60,11 +60,11 @@ test_that("carehomes_parameters returns a list of parameters", {
     c("N_tot", "carehome_beds", "carehome_residents", "carehome_workers",
       "sero_specificity", "sero_sensitivity", "N_tot_15_64",
       "pillar2_specificity", "pillar2_sensitivity", "react_specificity",
-      "react_sensitivity", "prop_noncovid_sympt", "psi_death_ICU",
-      "p_death_ICU_step", "psi_death_hosp_D", "p_death_hosp_D_step",
-      "psi_hosp_ILI", "p_hosp_ILI_step", "psi_death_comm",
-      "p_death_comm_step", "psi_ICU_hosp", "p_ICU_hosp_step",
-      "psi_admit_conf", "p_admit_conf_step", "n_groups"))
+      "react_sensitivity", "prop_noncovid_sympt", "relative_probability_death_ICU",
+      "p_death_ICU_step", "relative_probability_death_hosp_D", "p_death_hosp_D_step",
+      "relative_probability_hosp_ILI", "p_hosp_ILI_step", "relative_probability_death_comm",
+      "p_death_comm_step", "relative_probability_ICU_hosp", "p_ICU_hosp_step",
+      "relative_probability_admit_conf", "p_admit_conf_step", "n_groups"))
 
   expect_equal(p$carehome_beds, sircovid_carehome_beds("uk"))
   expect_equal(p$carehome_residents, round(p$carehome_beds * 0.742))
