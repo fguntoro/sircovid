@@ -77,35 +77,13 @@ vnapply <- function(x, fun, ...) {
 }
 
 
-check_rel_susceptibility <- function(rel_susceptibility) {
-  if (length(rel_susceptibility) == 0) {
-    stop("At least one value required for 'rel_susceptibility'")
-  }
-  if (any(rel_susceptibility < 0 | rel_susceptibility > 1)) {
-    stop("All values of 'rel_susceptibility' must lie in [0, 1]")
-  }
-  if (rel_susceptibility[[1]] != 1) {
-    stop("First value of 'rel_susceptibility' must be 1")
-  }
-  if (!all(diff(rel_susceptibility[-1]) > 0)) {
-    stop(paste(
-      "All values after the first value in 'rel_susceptibility' must be",
-      "increasing"))
-  }
-}
-
-build_waning_rate <- function(waning_rate) {
-  if (length(waning_rate) == 0) {
-    stop("At least one value required for 'rel_susceptibility'")
-  }
-  if (any(waning_rate < 0)) {
-    stop("'waning_rate' must have only non-negative values")
-  }
-  if (length(waning_rate) == 1) {
-    waning_rate <- rep(waning_rate, carehomes_n_groups())
-  } else if (length(waning_rate) != carehomes_n_groups()) {
-    stop(
-      "'waning_rate' should have as many elements as age groups or be a scalar")
-  }
-  waning_rate
+abind1 <- function(a, b) {
+  na <- dim(a)[1]
+  nb <- dim(b)[1]
+  nab <- dim(a)[2:3]
+  ret <- array(NA_real_, c(na + nb, nab))
+  ret[seq_len(na), , ] <- a
+  ret[seq_len(nb) + na, , ] <- b
+  rownames(ret) <- c(rownames(a), rownames(b))
+  ret
 }

@@ -13,7 +13,7 @@
 ##'
 ##' @export
 carehomes_Rt <- function(step, S, p) {
-  if (nrow(S) != length(p$rel_susceptibility) * nrow(p$m)) {
+  if (nrow(S) != ncol(p$rel_susceptibility) * nrow(p$m)) {
     stop(sprintf(
       "Expected 'S' to have %d rows, following transmission matrix",
       nrow(p$m)))
@@ -37,12 +37,9 @@ carehomes_Rt <- function(step, S, p) {
     ## when several vaccination groups,
     ## need to take the weighted means of the S
     ## (weights given by rel_susceptibility)
-    S_mat <- matrix(S[, t], p$n_groups, length(p$rel_susceptibility))
-    rel_susceptibility_weights <- matrix(
-      rep(p$rel_susceptibility, each = p$n_groups),
-      nrow = p$n_groups,
-      ncol = length(p$rel_susceptibility))
-    S_weighted <- rowSums(S_mat * rel_susceptibility_weights)
+    S_mat <- matrix(S[, t],
+                    nrow = p$n_groups, ncol = ncol(p$rel_susceptibility))
+    S_weighted <- rowSums(S_mat * p$rel_susceptibility)
 
     ngm <- outer(mean_duration[, t], S_weighted) * m
 
@@ -61,12 +58,19 @@ carehomes_Rt <- function(step, S, p) {
   t <- seq_along(step)
   eff_Rt_all <- vnapply(t, calculate_ev, S, drop_carehomes = FALSE)
   eff_Rt_general <- vnapply(t, calculate_ev, S, drop_carehomes = TRUE)
-  Rt_all <- vnapply(t, calculate_ev, array(p$N_tot, dim = dim(S)),
+  N_tot_non_vacc <- array(p$N_tot, dim = c(p$n_groups, ncol(S)))
+  N_tot_all_vacc_groups <- N_tot_non_vacc
+  for (i in seq(2, ncol(p$rel_susceptibility))) {
+    N_tot_all_vacc_groups <- rbind(N_tot_all_vacc_groups,
+                                   0 * N_tot_non_vacc)
+  }
+  Rt_all <- vnapply(t, calculate_ev, N_tot_all_vacc_groups,
                     drop_carehomes = FALSE)
-  Rt_general <- vnapply(t, calculate_ev, array(p$N_tot, dim = dim(S)),
+  Rt_general <- vnapply(t, calculate_ev, N_tot_all_vacc_groups,
                         drop_carehomes = TRUE)
 
   list(step = step,
+       date = step * p$dt,
        beta = beta,
        eff_Rt_all = eff_Rt_all,
        eff_Rt_general = eff_Rt_general,
@@ -132,7 +136,13 @@ carehomes_Rt_mean_duration <- function(step, pars) {
                    sircovid_parameters_beta_expand(step, pars$p_death_ICU_step))
   p_death_hosp_D <- outer(pars$relative_probability_death_hosp_D,
                 sircovid_parameters_beta_expand(step, pars$p_death_hosp_D_step))
+<<<<<<< HEAD
   p_death_comm <- outer(pars$relative_probability_death_comm,
+=======
+  p_death_stepdown <- outer(pars$psi_death_stepdown,
+              sircovid_parameters_beta_expand(step, pars$p_death_stepdown_step))
+  p_death_comm <- outer(pars$psi_death_comm,
+>>>>>>> origin
                   sircovid_parameters_beta_expand(step, pars$p_death_comm_step))
 
   p_mild <- (1 - p_asympt) * (1 - p_sympt_ILI)
@@ -142,8 +152,10 @@ carehomes_Rt_mean_duration <- function(step, pars) {
     (1 - p_ICU_hosp) * (1 - p_death_hosp_D)
   p_hosp_D <- p_ILI * p_hosp_ILI * (1 - p_death_comm) *
     (1 - p_ICU_hosp) * p_death_hosp_D
-  p_ICU_R <- p_ILI * p_hosp_ILI * (1 - p_death_comm) *
-    p_ICU_hosp * (1 - p_death_ICU)
+  p_ICU_S_R <- p_ILI * p_hosp_ILI * (1 - p_death_comm) *
+    p_ICU_hosp * (1 - p_death_ICU) * (1 - p_death_stepdown)
+  p_ICU_S_D <- p_ILI * p_hosp_ILI * (1 - p_death_comm) *
+    p_ICU_hosp * (1 - p_death_ICU) * p_death_stepdown
   p_ICU_D <- p_ILI * p_hosp_ILI * (1 - p_death_comm) *
     p_ICU_hosp * p_death_ICU
 
@@ -162,10 +174,11 @@ carehomes_Rt_mean_duration <- function(step, pars) {
     pars$hosp_transmission * (
       p_hosp_R * pars$s_hosp_R / (1 - exp(- dt * pars$gamma_hosp_R)) +
       p_hosp_D * pars$s_hosp_D / (1 - exp(- dt * pars$gamma_hosp_D)) +
-      (p_ICU_R + p_ICU_D) * pars$s_triage /
+      (p_ICU_S_R + p_ICU_S_D + p_ICU_D) * pars$s_triage /
       (1 - exp(- dt * pars$gamma_triage))) +
     pars$ICU_transmission * (
-      p_ICU_R * pars$s_ICU_R / (1 - exp(- dt * pars$gamma_ICU_R)) +
+      p_ICU_S_R * pars$s_ICU_S_R / (1 - exp(- dt * pars$gamma_ICU_S_R)) +
+      p_ICU_S_D * pars$s_ICU_S_D / (1 - exp(- dt * pars$gamma_ICU_S_D)) +
       p_ICU_D * pars$s_ICU_D / (1 - exp(- dt * pars$gamma_ICU_D)))
 
   dt * mean_duration

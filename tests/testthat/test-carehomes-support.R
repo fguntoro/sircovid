@@ -5,10 +5,11 @@ test_that("carehomes progression parameters", {
   expect_setequal(
     names(p),
     c("s_E", "s_asympt", "s_mild", "s_ILI", "s_comm_D", "s_hosp_D", "s_hosp_R",
-      "s_ICU_D", "s_ICU_R", "s_triage", "s_stepdown", "s_R_pos", "s_PCR_pos",
-      "s_PCR_pre", "gamma_E", "gamma_asympt", "gamma_mild", "gamma_ILI",
-      "gamma_comm_D", "gamma_hosp_D", "gamma_hosp_R", "gamma_ICU_D",
-      "gamma_ICU_R", "gamma_triage", "gamma_stepdown", "gamma_R_pos",
+      "s_ICU_D", "s_ICU_S_R", "s_ICU_S_D", "s_triage", "s_stepdown_D",
+      "s_stepdown_R", "s_R_pos", "s_PCR_pos", "s_PCR_pre", "gamma_E",
+      "gamma_asympt", "gamma_mild", "gamma_ILI", "gamma_comm_D", "gamma_hosp_D",
+      "gamma_hosp_R", "gamma_ICU_D", "gamma_ICU_S_R", "gamma_ICU_S_D",
+      "gamma_triage", "gamma_stepdown_D", "gamma_stepdown_R", "gamma_R_pos",
       "gamma_R_pre_1", "gamma_R_pre_2", "gamma_test", "gamma_PCR_pos",
       "gamma_PCR_pre"))
 
@@ -17,6 +18,38 @@ test_that("carehomes progression parameters", {
   ## you write tests here that reflect that?
 })
 
+
+test_that("carehomes vaccination parameters", {
+  n_groups <- carehomes_n_groups()
+  # test default values
+  p <- carehomes_parameters_vaccination()
+  expect_setequal(
+    names(p),
+    c("rel_susceptibility", "vaccination_rate", "vaccine_progression_rate"))
+  expect_equal(nrow(p$rel_susceptibility), n_groups)
+  expect_equal(ncol(p$rel_susceptibility), 3)
+  expect_equal(length(p$vaccination_rate), n_groups)
+  expect_equal(nrow(p$vaccine_progression_rate), n_groups)
+  expect_equal(ncol(p$vaccine_progression_rate), 1)
+
+  # test when more vaccinated categories than default
+  rel_susceptibility <- c(1, 0.75, 0.5, 0.75)
+  vaccination_rate <- 1
+  vaccine_progression_rate <- c(1, 1)
+  p <- carehomes_parameters_vaccination(rel_susceptibility = rel_susceptibility,
+                                        vaccination_rate = vaccination_rate,
+                                        vaccine_progression_rate =
+                                          vaccine_progression_rate)
+  expect_setequal(
+    names(p),
+    c("rel_susceptibility", "vaccination_rate", "vaccine_progression_rate"))
+  expect_equal(nrow(p$rel_susceptibility), n_groups)
+  expect_equal(ncol(p$rel_susceptibility), length(rel_susceptibility))
+  expect_equal(length(p$vaccination_rate), n_groups)
+  expect_equal(nrow(p$vaccine_progression_rate), n_groups)
+  expect_equal(ncol(p$vaccine_progression_rate),
+               length(vaccine_progression_rate))
+})
 
 test_that("carehomes_parameters returns a list of parameters", {
   date <- sircovid_date("2020-02-01")
@@ -34,7 +67,9 @@ test_that("carehomes_parameters returns a list of parameters", {
   progression <- carehomes_parameters_progression()
   expect_identical(p[names(progression)], progression)
 
-  vaccination <- carehomes_parameters_vaccination()
+  vaccination <- carehomes_parameters_vaccination(p$rel_susceptibility,
+                                                  p$vaccination_rate,
+                                                  p$vaccine_progression_rate)
   expect_identical(p[names(vaccination)], vaccination)
 
   waning <- carehomes_parameters_waning()
@@ -60,11 +95,20 @@ test_that("carehomes_parameters returns a list of parameters", {
     c("N_tot", "carehome_beds", "carehome_residents", "carehome_workers",
       "sero_specificity", "sero_sensitivity", "N_tot_15_64",
       "pillar2_specificity", "pillar2_sensitivity", "react_specificity",
+<<<<<<< HEAD
       "react_sensitivity", "prop_noncovid_sympt", "relative_probability_death_ICU",
       "p_death_ICU_step", "relative_probability_death_hosp_D", "p_death_hosp_D_step",
       "relative_probability_hosp_ILI", "p_hosp_ILI_step", "relative_probability_death_comm",
       "p_death_comm_step", "relative_probability_ICU_hosp", "p_ICU_hosp_step",
       "relative_probability_admit_conf", "p_admit_conf_step", "n_groups"))
+=======
+      "react_sensitivity", "prop_noncovid_sympt", "psi_death_ICU",
+      "p_death_ICU_step", "psi_death_hosp_D", "p_death_hosp_D_step",
+      "psi_death_stepdown", "p_death_stepdown_step", "psi_hosp_ILI",
+      "p_hosp_ILI_step", "psi_death_comm", "p_death_comm_step",
+      "psi_ICU_hosp", "p_ICU_hosp_step", "psi_admit_conf", "p_admit_conf_step",
+      "n_groups"))
+>>>>>>> origin
 
   expect_equal(p$carehome_beds, sircovid_carehome_beds("uk"))
   expect_equal(p$carehome_residents, round(p$carehome_beds * 0.742))
@@ -423,4 +467,8 @@ test_that("carehomes_particle_filter_data does not allow more than one pillar 2
   expect_error(
     carehomes_particle_filter(data),
     "Cannot fit to more than one pillar 2 data stream")
+})
+
+test_that("the carehomes sircovid model has 19 groups", {
+  expect_equal(carehomes_n_groups(), 19)
 })

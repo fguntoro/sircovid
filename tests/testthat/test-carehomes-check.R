@@ -40,8 +40,8 @@ test_that("there are no infections when beta is 0", {
   mod$set_index(integer(0))
   s <- dust::dust_iterate(mod, seq(0, 400, by = 4), info$index$S)
 
-  ## Susceptible population is never drawn down
-  expect_equal(s, array(s[, , 1], c(19, 1, 101)))
+  ## Susceptible population is never drawn down:
+  expect_equal(s, array(s[, , 1], c(nrow(s), 1, 101)))
 })
 
 
@@ -74,9 +74,9 @@ test_that("noone stays in R, R_neg or PCR_neg if waning rate is very large", {
   index_R <- array(info$index$R, info$dim$R)
   index_R_neg <- array(info$index$R_neg, info$dim$R_neg)
   index_PCR_neg <- array(info$index$PCR_neg, info$dim$PCR_neg)
-  state[index_R] <- state[index_S]
-  state[index_R_neg] <- state[index_S]
-  state[index_PCR_neg] <- state[index_S]
+  state[index_R] <- rowSums(array(state[index_S], info$dim$S))
+  state[index_R_neg] <- rowSums(array(state[index_S], info$dim$S))
+  state[index_PCR_neg] <- rowSums(array(state[index_S], info$dim$S))
   state[index_S] <- 0
 
   mod$set_state(state)
@@ -129,7 +129,7 @@ test_that("No one is infected if I and E are 0 at t = 0", {
   s <- dust::dust_iterate(mod, seq(0, 400, by = 4), info$index$S)
 
   ## Susceptible population is never drawn down:
-  expect_equal(s, array(s[, , 1], c(19, 1, 101)))
+  expect_equal(s, array(s[, , 1], c(nrow(s), 1, 101)))
 })
 
 
@@ -152,16 +152,18 @@ test_that("No one is hospitalised, no-one dies if p_sympt_ILI is 0", {
   expect_true(all(y$I_hosp_R_conf == 0))
   expect_true(all(y$I_hosp_D_unconf == 0))
   expect_true(all(y$I_hosp_D_conf == 0))
-  expect_true(all(y$I_ICU_R_unconf == 0))
-  expect_true(all(y$I_ICU_R_conf == 0))
+  expect_true(all(y$I_ICU_S_R_unconf == 0))
+  expect_true(all(y$I_ICU_S_R_conf == 0))
+  expect_true(all(y$I_ICU_S_D_unconf == 0))
+  expect_true(all(y$I_ICU_S_D_conf == 0))
   expect_true(all(y$I_ICU_D_unconf == 0))
   expect_true(all(y$I_ICU_D_conf == 0))
-  expect_true(all(y$I_triage_R_unconf == 0))
-  expect_true(all(y$I_triage_R_conf == 0))
-  expect_true(all(y$I_triage_D_unconf == 0))
-  expect_true(all(y$I_triage_D_conf == 0))
-  expect_true(all(y$R_stepdown_unconf == 0))
-  expect_true(all(y$R_stepdown_conf == 0))
+  expect_true(all(y$I_triage_unconf == 0))
+  expect_true(all(y$I_triage_conf == 0))
+  expect_true(all(y$R_stepdown_R_unconf == 0))
+  expect_true(all(y$R_stepdown_R_conf == 0))
+  expect_true(all(y$R_stepdown_D_unconf == 0))
+  expect_true(all(y$R_stepdown_D_conf == 0))
   expect_true(all(y$D_hosp == 0))
   expect_true(all(y$I_comm_D == 0))
   expect_true(all(y$D_comm == 0))
@@ -189,14 +191,18 @@ test_that("No one is hospitalised, no-one dies if relative_probability_hosp_ILI 
   expect_true(all(y$I_hosp_D_conf == 0))
   expect_true(all(y$I_ICU_R_unconf == 0))
   expect_true(all(y$I_ICU_R_conf == 0))
+  expect_true(all(y$I_ICU_S_R_unconf == 0))
+  expect_true(all(y$I_ICU_S_R_conf == 0))
+  expect_true(all(y$I_ICU_S_D_unconf == 0))
+  expect_true(all(y$I_ICU_S_D_conf == 0))
   expect_true(all(y$I_ICU_D_unconf == 0))
   expect_true(all(y$I_ICU_D_conf == 0))
-  expect_true(all(y$I_triage_R_unconf == 0))
-  expect_true(all(y$I_triage_R_conf == 0))
-  expect_true(all(y$I_triage_D_unconf == 0))
-  expect_true(all(y$I_triage_D_conf == 0))
-  expect_true(all(y$R_stepdown_unconf == 0))
-  expect_true(all(y$R_stepdown_conf == 0))
+  expect_true(all(y$I_triage_unconf == 0))
+  expect_true(all(y$I_triage_conf == 0))
+  expect_true(all(y$R_stepdown_R_unconf == 0))
+  expect_true(all(y$R_stepdown_R_conf == 0))
+  expect_true(all(y$R_stepdown_D_unconf == 0))
+  expect_true(all(y$R_stepdown_D_conf == 0))
   expect_true(all(y$D_hosp == 0))
   expect_true(all(y$I_comm_D == 0))
   expect_true(all(y$D_comm == 0))
@@ -233,16 +239,18 @@ test_that("No one is hospitalised, no-one recovers in edge case", {
   expect_true(all(y$I_hosp_R_conf == 0))
   expect_true(all(y$I_hosp_D_unconf == 0))
   expect_true(all(y$I_hosp_D_conf == 0))
-  expect_true(all(y$I_ICU_R_unconf == 0))
-  expect_true(all(y$I_ICU_R_conf == 0))
+  expect_true(all(y$I_ICU_S_R_unconf == 0))
+  expect_true(all(y$I_ICU_S_R_conf == 0))
+  expect_true(all(y$I_ICU_S_D_unconf == 0))
+  expect_true(all(y$I_ICU_S_D_conf == 0))
   expect_true(all(y$I_ICU_D_unconf == 0))
   expect_true(all(y$I_ICU_D_conf == 0))
-  expect_true(all(y$I_triage_R_unconf == 0))
-  expect_true(all(y$I_triage_R_conf == 0))
-  expect_true(all(y$I_triage_D_unconf == 0))
-  expect_true(all(y$I_triage_D_conf == 0))
-  expect_true(all(y$R_stepdown_unconf == 0))
-  expect_true(all(y$R_stepdown_conf == 0))
+  expect_true(all(y$I_triage_unconf == 0))
+  expect_true(all(y$I_triage_conf == 0))
+  expect_true(all(y$R_stepdown_R_unconf == 0))
+  expect_true(all(y$R_stepdown_R_conf == 0))
+  expect_true(all(y$R_stepdown_D_unconf == 0))
+  expect_true(all(y$R_stepdown_D_conf == 0))
   expect_true(all(y$R == 0))
   expect_true(all(y$D_hosp == 0))
 })
@@ -277,16 +285,18 @@ test_that("No one is hospitalised, no-one recovers in edge case 2", {
   expect_true(all(y$I_hosp_R_conf == 0))
   expect_true(all(y$I_hosp_D_unconf == 0))
   expect_true(all(y$I_hosp_D_conf == 0))
-  expect_true(all(y$I_ICU_R_unconf == 0))
-  expect_true(all(y$I_ICU_R_conf == 0))
+  expect_true(all(y$I_ICU_S_R_unconf == 0))
+  expect_true(all(y$I_ICU_S_R_conf == 0))
+  expect_true(all(y$I_ICU_S_D_unconf == 0))
+  expect_true(all(y$I_ICU_S_D_conf == 0))
   expect_true(all(y$I_ICU_D_unconf == 0))
   expect_true(all(y$I_ICU_D_conf == 0))
-  expect_true(all(y$I_triage_R_unconf == 0))
-  expect_true(all(y$I_triage_R_conf == 0))
-  expect_true(all(y$I_triage_D_unconf == 0))
-  expect_true(all(y$I_triage_D_conf == 0))
-  expect_true(all(y$R_stepdown_unconf == 0))
-  expect_true(all(y$R_stepdown_conf == 0))
+  expect_true(all(y$I_triage_unconf == 0))
+  expect_true(all(y$I_triage_conf == 0))
+  expect_true(all(y$R_stepdown_R_unconf == 0))
+  expect_true(all(y$R_stepdown_R_conf == 0))
+  expect_true(all(y$R_stepdown_D_unconf == 0))
+  expect_true(all(y$R_stepdown_D_conf == 0))
   expect_true(all(y$R == 0))
   expect_true(all(y$D_hosp == 0))
 })
@@ -317,7 +327,7 @@ test_that("forcing hospital route results in correct path", {
   ## and verify that some compartments have cases (nonzero) and others
   ## area all zeros.
   helper <- function(prob_ICU_hosp, prob_death_ICU, prob_death_hosp_D,
-                     expect_cases, expect_zero) {
+                     prob_death_stepdown, expect_cases, expect_zero) {
     ## waning_rate default is 0, setting to a non-zero value so that this test
     ## passes with waning immunity
     p <- carehomes_parameters(0, "england", waning_rate = 1 / 20)
@@ -329,7 +339,14 @@ test_that("forcing hospital route results in correct path", {
     p$relative_probability_death_hosp_D[] <- prob_death_hosp_D %||% p$relative_probability_death_hosp_D[]
     p$p_death_ICU_step <- ifelse(is.null(prob_death_ICU),
                                  p$p_death_ICU_step, 1)
+<<<<<<< HEAD
     p$relative_probability_death_ICU[] <- prob_death_ICU %||% p$relative_probability_death_ICU[]
+=======
+    p$psi_death_ICU[] <- prob_death_ICU %||% p$psi_death_ICU[]
+    p$p_death_stepdown_step <- ifelse(is.null(prob_death_stepdown),
+                                 p$p_death_stepdown_step, 1)
+    p$psi_death_stepdown[] <- prob_death_stepdown %||% p$psi_death_stepdown[]
+>>>>>>> origin
 
     mod <- carehomes$new(p, 0, 1)
     info <- mod$info()
@@ -341,11 +358,12 @@ test_that("forcing hospital route results in correct path", {
     ## Save some work by using the total of confirmed and unconfirmed
     y$I_hosp_R <- y$I_hosp_R_unconf + y$I_hosp_R_conf
     y$I_hosp_D <- y$I_hosp_D_unconf + y$I_hosp_D_conf
-    y$I_triage_R <- y$I_triage_R_unconf + y$I_triage_R_conf
-    y$I_triage_D <- y$I_triage_D_unconf + y$I_triage_D_conf
-    y$I_ICU_R <- y$I_ICU_R_unconf + y$I_ICU_R_conf
+    y$I_triage <- y$I_triage_unconf + y$I_triage_conf
+    y$I_ICU_S_R <- y$I_ICU_S_R_unconf + y$I_ICU_S_R_conf
+    y$I_ICU_S_D <- y$I_ICU_S_D_unconf + y$I_ICU_S_D_conf
     y$I_ICU_D <- y$I_ICU_D_unconf + y$I_ICU_D_conf
-    y$R_stepdown <- y$R_stepdown_unconf + y$R_stepdown_conf
+    y$R_stepdown_R <- y$R_stepdown_R_unconf + y$R_stepdown_R_conf
+    y$R_stepdown_D <- y$R_stepdown_D_unconf + y$R_stepdown_D_conf
 
     for (i in expect_cases) {
       expect_true(any(y[[i]] > 0), label = sprintf("Expected cases in %s", i))
@@ -356,25 +374,32 @@ test_that("forcing hospital route results in correct path", {
   }
 
   ## p_ICU_hosp = 0, p_death_hosp_D = 0 no-one goes into ICU, no deaths
-  helper(0, NULL, 0, "I_hosp_R",
-         c("I_hosp_D", "I_ICU_R", "I_ICU_D", "I_triage_R", "I_triage_D",
-           "R_stepdown", "D_hosp"))
+  helper(0, NULL, 0, NULL, "I_hosp_R",
+         c("I_hosp_D", "I_ICU_S_R", "I_ICU_S_D", "I_ICU_D", "I_triage",
+           "R_stepdown_R", "R_stepdown_D", "D_hosp"))
 
   ## p_death_hosp = 1, p_ICU_hosp = 0 no-one goes into ICU, no
   ## recovery in hospital
-  helper(0, NULL, 1, "I_hosp_D",
-         c("I_hosp_R", "I_ICU_R", "I_ICU_D", "I_triage_R", "I_triage_D",
-           "R_stepdown"))
+  helper(0, NULL, 1, NULL, "I_hosp_D",
+         c("I_hosp_R", "I_ICU_S_R", "I_ICU_S_D", "I_ICU_D", "I_triage",
+           "R_stepdown_R", "R_stepdown_D"))
 
   ## p_death_ICU = 1, p_ICU_hosp = 1 no-one goes in hosp_D / hosp_R,
   ## no recovery from ICU
-  helper(1, 1, NULL, "I_ICU_D",
-         c("I_hosp_R", "I_hosp_D", "I_ICU_R", "R_stepdown"))
+  helper(1, 1, NULL, NULL, "I_ICU_D",
+         c("I_hosp_R", "I_hosp_D", "I_ICU_S_R", "I_ICU_S_D", "R_stepdown_R",
+           "R_stepdown_D"))
 
-  ## p_death_ICU = 0, p_ICU_hosp = 1 no-one goes in hosp_D / hosp_R,
-  ## no deaths
-  helper(1, 0, NULL, "I_ICU_R",
-         c("I_hosp_R", "I_hosp_D", "I_ICU_D", "D_hosp"))
+  ## p_death_ICU = 0, p_ICU_hosp = 1, p_death_stepdown = 0 no-one goes in
+  ## hosp_D / hosp_R, no deaths
+  helper(1, 0, NULL, 0, c("I_ICU_S_R", "R_stepdown_R"),
+         c("I_hosp_R", "I_hosp_D", "I_ICU_S_D", "I_ICU_D", "R_stepdown_D",
+           "D_hosp"))
+
+  ## p_death_ICU = 0, p_ICU_hosp = 1, p_death_stepdown = 1 no-one goes in
+  ## hosp_D / hosp_R, no-one recovers in stepdown
+  helper(1, 0, NULL, 1, c("I_ICU_S_D", "R_stepdown_D"),
+         c("I_hosp_R", "I_hosp_D", "I_ICU_S_R", "I_ICU_D", "R_stepdown_R"))
 })
 
 
@@ -489,11 +514,12 @@ test_that("setting a gamma to Inf results immediate progression", {
 
     y$I_hosp_R <- y$I_hosp_R_unconf + y$I_hosp_R_conf
     y$I_hosp_D <- y$I_hosp_D_unconf + y$I_hosp_D_conf
-    y$I_triage_R <- y$I_triage_R_unconf + y$I_triage_R_conf
-    y$I_triage_D <- y$I_triage_D_unconf + y$I_triage_D_conf
-    y$I_ICU_R <- y$I_ICU_R_unconf + y$I_ICU_R_conf
+    y$I_triage <- y$I_triage_unconf + y$I_triage_conf
+    y$I_ICU_S_R <- y$I_ICU_S_R_unconf + y$I_ICU_S_R_conf
+    y$I_ICU_S_D <- y$I_ICU_S_D_unconf + y$I_ICU_S_D_conf
     y$I_ICU_D <- y$I_ICU_D_unconf + y$I_ICU_D_conf
-    y$R_stepdown <- y$R_stepdown_unconf + y$R_stepdown_conf
+    y$R_stepdown_R <- y$R_stepdown_R_unconf + y$R_stepdown_R_conf
+    y$R_stepdown_D <- y$R_stepdown_D_unconf + y$R_stepdown_D_conf
 
     z <- y[[compartment_name]]
 
@@ -511,14 +537,15 @@ test_that("setting a gamma to Inf results immediate progression", {
   helper("gamma_asympt", "s_asympt", "I_asympt")
   helper("gamma_mild", "s_mild", "I_mild")
   helper("gamma_ILI", "s_ILI", "I_ILI")
-  helper("gamma_triage", "s_triage", "I_triage_R")
-  helper("gamma_triage", "s_triage", "I_triage_D")
+  helper("gamma_triage", "s_triage", "I_triage")
   helper("gamma_hosp_R", "s_hosp_R", "I_hosp_R")
   helper("gamma_hosp_D", "s_hosp_D", "I_hosp_D")
-  helper("gamma_ICU_R", "s_ICU_R", "I_ICU_R")
+  helper("gamma_ICU_S_R", "s_ICU_S_R", "I_ICU_S_R")
+  helper("gamma_ICU_S_D", "s_ICU_S_D", "I_ICU_S_D")
   helper("gamma_ICU_D", "s_ICU_D", "I_ICU_D")
   helper("gamma_comm_D", "s_comm_D", "I_comm_D")
-  helper("gamma_stepdown", "s_stepdown", "R_stepdown")
+  helper("gamma_stepdown_R", "s_stepdown_R", "R_stepdown_R")
+  helper("gamma_stepdown_D", "s_stepdown_D", "R_stepdown_D")
   helper("gamma_R_pos", "s_R_pos", "R_pos")
   helper("gamma_PCR_pre", "s_PCR_pre", "PCR_pre")
   helper("gamma_PCR_pos", "s_PCR_pos", "PCR_pos")
@@ -542,11 +569,12 @@ test_that("setting a gamma to 0 results in no progression", {
 
     y$I_hosp_R <- y$I_hosp_R_unconf + y$I_hosp_R_conf
     y$I_hosp_D <- y$I_hosp_D_unconf + y$I_hosp_D_conf
-    y$I_triage_R <- y$I_triage_R_unconf + y$I_triage_R_conf
-    y$I_triage_D <- y$I_triage_D_unconf + y$I_triage_D_conf
-    y$I_ICU_R <- y$I_ICU_R_unconf + y$I_ICU_R_conf
+    y$I_triage <- y$I_triage_unconf + y$I_triage_conf
+    y$I_ICU_S_R <- y$I_ICU_S_R_unconf + y$I_ICU_S_R_conf
+    y$I_ICU_S_D <- y$I_ICU_S_D_unconf + y$I_ICU_S_D_conf
     y$I_ICU_D <- y$I_ICU_D_unconf + y$I_ICU_D_conf
-    y$R_stepdown <- y$R_stepdown_unconf + y$R_stepdown_conf
+    y$R_stepdown_R <- y$R_stepdown_R_unconf + y$R_stepdown_R_conf
+    y$R_stepdown_D <- y$R_stepdown_D_unconf + y$R_stepdown_D_conf
 
     z <- y[[compartment_name]]
 
@@ -564,14 +592,15 @@ test_that("setting a gamma to 0 results in no progression", {
   helper("gamma_asympt", "s_asympt", "I_asympt")
   helper("gamma_mild", "s_mild", "I_mild")
   helper("gamma_ILI", "s_ILI", "I_ILI")
-  helper("gamma_triage", "s_triage", "I_triage_R")
-  helper("gamma_triage", "s_triage", "I_triage_D")
+  helper("gamma_triage", "s_triage", "I_triage")
   helper("gamma_hosp_R", "s_hosp_R", "I_hosp_R")
   helper("gamma_hosp_D", "s_hosp_D", "I_hosp_D")
-  helper("gamma_ICU_R", "s_ICU_R", "I_ICU_R")
+  helper("gamma_ICU_S_R", "s_ICU_S_R", "I_ICU_S_R")
+  helper("gamma_ICU_S_D", "s_ICU_S_D", "I_ICU_S_D")
   helper("gamma_ICU_D", "s_ICU_D", "I_ICU_D")
   helper("gamma_comm_D", "s_comm_D", "I_comm_D")
-  helper("gamma_stepdown", "s_stepdown", "R_stepdown")
+  helper("gamma_stepdown_R", "s_stepdown_R", "R_stepdown_R")
+  helper("gamma_stepdown_D", "s_stepdown_D", "R_stepdown_D")
   helper("gamma_R_pos", "s_R_pos", "R_pos")
   helper("gamma_PCR_pre", "s_PCR_pre", "PCR_pre")
   helper("gamma_PCR_pos", "s_PCR_pos", "PCR_pos")
@@ -587,9 +616,11 @@ test_that("No one is unconfirmed, if p_admit_conf = 1", {
   p$gamma_triage <- Inf
   p$gamma_hosp_R <- Inf
   p$gamma_hosp_D <- Inf
-  p$gamma_ICU_R <- Inf
+  p$gamma_ICU_S_R <- Inf
+  p$gamma_ICU_S_D <- Inf
   p$gamma_ICU_D <- Inf
-  p$gamma_stepdown <- Inf
+  p$gamma_stepdown_R <- Inf
+  p$gamma_stepdown_D <- Inf
 
   mod <- carehomes$new(p, 0, 1)
   info <- mod$info()
@@ -601,21 +632,22 @@ test_that("No one is unconfirmed, if p_admit_conf = 1", {
   expect_true(any(y$I_hosp_R_conf > 0))
   expect_true(all(y$I_hosp_D_unconf == 0))
   expect_true(any(y$I_hosp_D_conf > 0))
-  expect_true(all(y$I_triage_R_unconf == 0))
-  expect_true(any(y$I_triage_R_conf > 0))
-  expect_true(all(y$I_triage_D_unconf == 0))
-  expect_true(any(y$I_triage_D_conf > 0))
-  expect_true(all(y$I_ICU_R_unconf == 0))
-  expect_true(any(y$I_ICU_R_conf > 0))
+  expect_true(all(y$I_triage_unconf == 0))
+  expect_true(any(y$I_triage_conf > 0))
+  expect_true(all(y$I_ICU_S_R_unconf == 0))
+  expect_true(any(y$I_ICU_S_R_conf > 0))
+  expect_true(all(y$I_ICU_S_D_unconf == 0))
+  expect_true(any(y$I_ICU_S_D_conf > 0))
   expect_true(all(y$I_ICU_D_unconf == 0))
   expect_true(any(y$I_ICU_D_conf > 0))
-  expect_true(all(y$R_stepdown_unconf == 0))
-  expect_true(any(y$R_stepdown_conf > 0))
+  expect_true(all(y$R_stepdown_R_unconf == 0))
+  expect_true(any(y$R_stepdown_R_conf > 0))
+  expect_true(all(y$R_stepdown_D_unconf == 0))
+  expect_true(any(y$R_stepdown_D_conf > 0))
 
   admit_conf <- apply(y$I_hosp_R_conf[, 1, , ] +
                       y$I_hosp_D_conf[, 1, , ] +
-                      y$I_triage_R_conf[, 1, , ] +
-                      y$I_triage_D_conf[, 1, , ], 1, sum)
+                      y$I_triage_conf[, 1, , ], 1, sum)
 
   expect_true(all(diff(y$cum_admit_conf) == admit_conf[-1]))
   expect_true(all(y$cum_new_conf == 0))
@@ -639,16 +671,18 @@ test_that("No one is confirmed, if p_admit_conf = 0 and gamma_test = 0", {
   expect_true(all(y$I_hosp_R_conf == 0))
   expect_true(any(y$I_hosp_D_unconf > 0))
   expect_true(all(y$I_hosp_D_conf == 0))
-  expect_true(any(y$I_triage_R_unconf > 0))
-  expect_true(all(y$I_triage_R_conf == 0))
-  expect_true(any(y$I_triage_D_unconf > 0))
-  expect_true(all(y$I_triage_D_conf == 0))
-  expect_true(any(y$I_ICU_R_unconf > 0))
-  expect_true(all(y$I_ICU_R_conf == 0))
+  expect_true(any(y$I_triage_unconf > 0))
+  expect_true(all(y$I_triage_conf == 0))
+  expect_true(any(y$I_ICU_S_R_unconf > 0))
+  expect_true(all(y$I_ICU_S_R_conf == 0))
+  expect_true(any(y$I_ICU_S_D_unconf > 0))
+  expect_true(all(y$I_ICU_S_D_conf == 0))
   expect_true(any(y$I_ICU_D_unconf > 0))
   expect_true(all(y$I_ICU_D_conf == 0))
-  expect_true(any(y$R_stepdown_unconf > 0))
-  expect_true(all(y$R_stepdown_conf == 0))
+  expect_true(any(y$R_stepdown_R_unconf > 0))
+  expect_true(all(y$R_stepdown_R_conf == 0))
+  expect_true(any(y$R_stepdown_D_unconf > 0))
+  expect_true(all(y$R_stepdown_D_conf == 0))
   expect_true(all(y$admit_new_conf == 0))
   expect_true(all(y$cum_new_conf == 0))
 })
@@ -663,16 +697,20 @@ test_that("Instant confirmation if p_admit_conf = 0 and gamma_test = Inf", {
   p$gamma_triage <- Inf
   p$gamma_hosp_R <- Inf
   p$gamma_hosp_D <- Inf
-  p$gamma_ICU_R <- Inf
+  p$gamma_ICU_S_R <- Inf
+  p$gamma_ICU_S_D <- Inf
   p$gamma_ICU_D <- Inf
-  p$gamma_stepdown <- Inf
+  p$gamma_stepdown_R <- Inf
+  p$gamma_stepdown_D <- Inf
 
   mod <- carehomes$new(p, 0, 1)
   info <- mod$info()
   y0 <- carehomes_initial(info, 1, p)$state
 
-  ## We want to set I_ICU_R_unconf[, 1, ] and I_ICU_D_unconf[, 1, ] to 50
-  y0[info$index$I_ICU_R_unconf[1:19]] <- 50
+  ## We want to set I_ICU_S_R_unconf[, 1, ], I_ICU_S_D_unconf[, 1, ] and
+  ## I_ICU_D_unconf[, 1, ] to 50
+  y0[info$index$I_ICU_S_R_unconf[1:19]] <- 50
+  y0[info$index$I_ICU_S_D_unconf[1:19]] <- 50
   y0[info$index$I_ICU_D_unconf[1:19]] <- 50
 
   mod$set_state(y0, 0)
@@ -690,40 +728,42 @@ test_that("Instant confirmation if p_admit_conf = 0 and gamma_test = Inf", {
   expect_equal(y$I_hosp_D_conf[, 2, , -1], y$I_hosp_D_unconf[, 1, , -n])
   expect_true(all(y$I_hosp_D_unconf[, 2, , ] == 0))
 
-  ## Check triage_R
-  expect_true(all(y$I_triage_R_conf[, 1, , ] == 0))
-  expect_equal(y$I_triage_R_conf[, 2, , -1], y$I_triage_R_unconf[, 1, , -n])
-  expect_true(all(y$I_triage_R_unconf[, 2, , ] == 0))
+  ## Check triage
+  expect_true(all(y$I_triage_conf[, 1, , ] == 0))
+  expect_equal(y$I_triage_conf[, 2, , -1], y$I_triage_unconf[, 1, , -n])
+  expect_true(all(y$I_triage_unconf[, 2, , ] == 0))
 
-  ## Check triage_D
-  expect_true(all(y$I_triage_D_conf[, 1, , ] == 0))
-  expect_equal(y$I_triage_D_conf[, 2, , -1], y$I_triage_D_unconf[, 1, , -n])
-  expect_true(all(y$I_triage_D_unconf[, 2, , ] == 0))
-
-  ## Check ICU_R
-  expect_equal(y$I_ICU_R_conf[, 2, , 2], y$I_ICU_R_unconf[, 1, , 1])
-  expect_equal(y$I_ICU_R_conf[, 1, , -1], y$I_triage_R_conf[, 2, , -n])
-  expect_true(all(y$I_ICU_R_unconf[, 2, , ] == 0))
-
-  ## Check ICU_D
+  ## Check ICU_D/ICU_S_R/ICU_S_D
   expect_equal(y$I_ICU_D_conf[, 2, , 2], y$I_ICU_D_unconf[, 1, , 1])
-  expect_equal(y$I_ICU_D_conf[, 1, , -1], y$I_triage_D_conf[, 2, , -n])
   expect_true(all(y$I_ICU_D_unconf[, 2, , ] == 0))
+  expect_equal(y$I_ICU_S_R_conf[, 2, , 2], y$I_ICU_S_R_unconf[, 1, , 1])
+  expect_true(all(y$I_ICU_S_R_unconf[, 2, , ] == 0))
+  expect_true(all(y$I_ICU_S_D_unconf[, 2, , ] == 0))
+  expect_equal(y$I_ICU_S_D_conf[, 2, , 2], y$I_ICU_S_D_unconf[, 1, , 1])
+  expect_equal(y$I_ICU_D_conf[, 1, , -1] + y$I_ICU_S_R_conf[, 1, , -1] +
+                 y$I_ICU_S_D_conf[, 1, , -1], y$I_triage_conf[, 2, , -n])
 
-  ## Check stepdown
-  expect_equal(y$R_stepdown_conf[, 2, 2], y$R_stepdown_unconf[, 1, 1])
-  I_ICU_R_conf <- drop(y$I_ICU_R_conf)
-  expect_equal(y$R_stepdown_conf[, 1, -1], I_ICU_R_conf[, 2, -n])
-  expect_true(all(y$R_stepdown_unconf[, 2, ] == 0))
+  ## Check stepdown_R
+  expect_equal(y$R_stepdown_R_conf[, 2, 2], y$R_stepdown_R_unconf[, 1, 1])
+  I_ICU_S_R_conf <- drop(y$I_ICU_S_R_conf)
+  expect_equal(y$R_stepdown_R_conf[, 1, -1], I_ICU_S_R_conf[, 2, -n])
+  expect_true(all(y$R_stepdown_R_unconf[, 2, ] == 0))
+
+  ## Check stepdown_D
+  expect_equal(y$R_stepdown_D_conf[, 2, 2], y$R_stepdown_D_unconf[, 1, 1])
+  I_ICU_S_D_conf <- drop(y$I_ICU_S_D_conf)
+  expect_equal(y$R_stepdown_D_conf[, 1, -1], I_ICU_S_D_conf[, 2, -n])
+  expect_true(all(y$R_stepdown_D_unconf[, 2, ] == 0))
 
   new_conf <- apply(y$I_hosp_R_conf[, 2, , ] +
                     y$I_hosp_D_conf[, 2, , ] +
-                    y$I_triage_R_conf[, 2, , ] +
-                    y$I_triage_D_conf[, 2, , ], 2, sum)
+                    y$I_triage_conf[, 2, , ], 2, sum)
   new_conf[2] <- new_conf[2] +
-    sum(y$I_ICU_R_conf[, 2, , 2] +
+    sum(y$I_ICU_S_R_conf[, 2, , 2] +
+        y$I_ICU_S_D_conf[, 2, , 2] +
         y$I_ICU_D_conf[, 2, , 2] +
-        y$R_stepdown_conf[, 2, 2])
+        y$R_stepdown_conf[, 2, 2] +
+        y$R_stepdown_R_conf[, 2, 2])
   expect_true(all(diff(y$cum_new_conf) == new_conf[-1]))
 
   expect_true(all(y$cum_admit_conf == 0))
@@ -740,12 +780,13 @@ test_that("tots all summed correctly ", {
   mod$set_index(integer(0))
   y <- mod$transform_variables(
     drop(dust::dust_iterate(mod, seq(0, 400, by = 4))))
-  expect_true(all(y$general_tot == apply(y$I_triage_R_conf, 4, sum) +
-                    apply(y$I_triage_D_conf, 4, sum) +
+  expect_true(all(y$general_tot == apply(y$I_triage_conf, 4, sum) +
                     apply(y$I_hosp_R_conf, 4, sum) +
                     apply(y$I_hosp_D_conf, 4, sum) +
-                    apply(y$R_stepdown_conf, 3, sum)))
-  expect_true(all(y$I_ICU_tot == apply(y$I_ICU_R_conf, 4, sum) +
+                    apply(y$R_stepdown_R_conf, 3, sum) +
+                    apply(y$R_stepdown_D_conf, 3, sum)))
+  expect_true(all(y$I_ICU_tot == apply(y$I_ICU_S_R_conf, 4, sum) +
+                    apply(y$I_ICU_S_D_conf, 4, sum) +
                     apply(y$I_ICU_D_conf, 4, sum)))
   expect_true(all(y$hosp_tot == y$I_ICU_tot + y$general_tot))
   expect_true(all(y$D_hosp_tot == apply(y$D_hosp, 2, sum)))
